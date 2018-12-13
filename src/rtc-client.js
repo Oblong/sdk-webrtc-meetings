@@ -204,6 +204,11 @@ module.exports = function (RTCManager) {
     var videoMuted = config.muteParams.localVideo ? true : false;
     config.muteParams.localVideo = !videoMuted;
     RTCManager.muteStreams(config.muteParams);
+    if (videoMuted) {
+      // since we're about to unmute video lets restart the stream
+      MediaStarted = false;
+      startLocalStream();
+    }
     return !videoMuted;
   };
 
