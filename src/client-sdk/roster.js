@@ -145,7 +145,7 @@ processModified: function(peopleToUpdate, options) {
     return participants.model.translateAttributes(updatedField,
       participants.getExistingForRaw(updatedField));
 
-    }).value();
+    });
 
   // scan through the change list, and set each affected participant
   _.each(toChanges, function(changedParticipant){
