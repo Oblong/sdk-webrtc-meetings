@@ -1,7 +1,8 @@
+var Logger = require('Logger');
 
 module.exports = function (RTCManager) {
 
-  console.log("(webrtcclientsdk.js) client Ref Design loading...");
+  Logger.debug("(webrtcclientsdk.js) client Ref Design loading...");
   var config = {
     muteParams: {
       localAudio: false,
@@ -36,11 +37,11 @@ module.exports = function (RTCManager) {
   var contentVideoEl = null;
   var MediaStarted = false;  // new for ffox
 
-  var localDevices;
-  var localAudioStream;
-  var localVideoStream;
-  var remoteStream;
-  var contentStream;
+  var localDevices = null;
+  var localAudioStream = null;
+  var localVideoStream = null;
+  var remoteStream = null;
+  var contentStream = null;
 
   // client callbacks
   var cbVideoMute = null;
@@ -63,7 +64,7 @@ module.exports = function (RTCManager) {
         evtContentShareStateChange : callback()  // ver 1.1.x
   */
   var initialize = function(options) {
-    console.log("bjnrtcsdk initializing");
+    Logger.debug("bjnrtcsdk initializing");
     localDevices = options.devices;
     localVideoEl = options.localVideoEl;
     remoteVideoEl = options.remoteVideoEl;
@@ -125,7 +126,7 @@ module.exports = function (RTCManager) {
 
       if(cbVideoMute) cbVideoMute();
     }, function(err){
-      console.log("getLocalMedia error:\n" + JSON.stringify(err,null,2));
+      Logger.debug("getLocalMedia error:\n" + JSON.stringify(err,null,2));
     });
   };
 
@@ -139,20 +140,20 @@ module.exports = function (RTCManager) {
     if(cbVideoMute)
       cbVideoMute(false);
       } else
-    console.log("updateSelfView no stream!!!");
+    Logger.debug("updateSelfView no stream!!!");
   };
 
   // Callback when audio stream changes.  update GUI if stream is defined
   var updateAudioPath = function (localStream) {
     if(localStream) {
-      console.log("Audio Path Change");
+      Logger.debug("Audio Path Change");
     }
   };
 
 
   var changeAudioInput = function(who) {
     var dev = localDevices.audioIn[ who ].id;
-    console.log("Audio Input is changed: " + dev );
+    Logger.debug("Audio Input is changed: " + dev );
     /*  Original Chrome
       mediaConstraints.audio.optional.push( { sourceId: dev } );
     */
@@ -163,7 +164,7 @@ module.exports = function (RTCManager) {
 
   var changeVideoInput = function(who) {
     var dev = localDevices.videoIn[ who ].id;
-    console.log("Video Input is changed: " + dev );
+    Logger.debug("Video Input is changed: " + dev );
     /*  Original Chrome
       mediaConstraints.video.optional.push( { sourceId: dev } );
     */
@@ -174,7 +175,7 @@ module.exports = function (RTCManager) {
 
   var changeAudioOutput = function(who) {
     var dev = localDevices.audioOut[ who ].id;
-    console.log("Audio Output is changed: " + dev );
+    Logger.debug("Audio Output is changed: " + dev );
     /*  Original Chrome
       mediaConstraints.audio.optional.push( { sourceId: dev } );
     */
@@ -183,7 +184,7 @@ module.exports = function (RTCManager) {
   };
 
   var setVideoBandwidth = function(bw){
-    console.log("Video BW is changed: " + bw);
+    Logger.debug("Video BW is changed: " + bw);
     RTCManager.setBandwidth(bw);
   };
 
@@ -213,7 +214,7 @@ module.exports = function (RTCManager) {
 
   var joinMeeting = function(meetingParams) {
     if( (meetingParams.numericMeetingId != "") && (meetingParams.displayName != "")) {
-      console.log("*** Joining meeting id: " + meetingParams.numericMeetingId);
+      Logger.debug("*** Joining meeting id: " + meetingParams.numericMeetingId);
       RTCManager.startMeeting(meetingParams);
     }
   };
@@ -221,24 +222,24 @@ module.exports = function (RTCManager) {
   // End the meeting
   var leaveMeeting = function(event) {
     RTCManager.endMeeting();
-    console.log("Leaving meeting");
+    Logger.debug("Leaving meeting");
   };
 
 
   var onRemoteConnectionStateChange = function(state) {
-    console.log('Remote Connection state :: ' + state);
+    Logger.debug('Remote Connection state :: ' + state);
     if(cbRemoteConnectionStateChange) cbRemoteConnectionStateChange(state);
   };
 
   var onLocalConnectionStateChange = function(state) {
-    console.log('Local Connection state :: ' +  state);
+    Logger.debug('Local Connection state :: ' +  state);
     if(cbLocalConnectionStateChange) cbLocalConnectionStateChange(state);
   };
 
   var onRemoteStreamUpdated = function(stream) {
     remoteStream = stream;
     if (stream) {
-      console.log('Remote stream updated');
+      Logger.debug('Remote stream updated');
       RTCManager.renderStream({
           stream: remoteStream,
           el: remoteVideoEl
@@ -249,7 +250,7 @@ module.exports = function (RTCManager) {
   var onContentStreamUpdated = function(stream){
     contentStream = stream;
     if (stream) {
-      console.log('Content stream updated');
+      Logger.debug('Content stream updated');
       RTCManager.renderStream({
         stream: stream,
         el: contentVideoEl
@@ -261,7 +262,7 @@ module.exports = function (RTCManager) {
 
   //Add code to handle error from BJN SDK
   var onRTCError = function(error) {
-    console.log("Error has occured :: " + error);
+    Logger.debug("Error has occured :: " + error);
     leaveMeeting();
     if(cbOnError) cbOnError(error);
   };

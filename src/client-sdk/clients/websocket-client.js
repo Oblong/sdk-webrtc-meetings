@@ -2,6 +2,7 @@ var _               = require('underscore');
 var Promise         = require('bluebird');
 var SockJS          = require('sockjs-client');
 var StateMachine    = require('state_machine');
+var Logger          = require('Logger');
 
 module.exports = function() {
     var transition      = StateMachine.transitions.transition;
@@ -48,14 +49,14 @@ module.exports = function() {
     };
     var onAfterClosed = function () {
         sock.close();
-        console.log("Closing Socket...");
+        Logger.debug("Closing Socket...");
     };
     var onReconnecting = function () {
         if(joinTimeout) {
             clearTimeout(joinTimeout);
         }
         if (reconnects === maxReconnects) {
-            console.log("Cannot setup sockJS connection, max reconnects attempted");
+            Logger.debug("Cannot setup sockJS connection, max reconnects attempted");
         }
 
         setTimeout(function() {
@@ -101,7 +102,7 @@ module.exports = function() {
         return {
             guid_assigned: guidAssigned,
             remoteclose: function () {
-                console.log("remote close");
+                Logger.debug("remote close");
                 call.trigger('remoteClose');
             },
             pairingError: function () {
@@ -115,25 +116,25 @@ module.exports = function() {
 
     var sendEvent = function (event_name, event_data) {
         if (isJoinEvent(event_name) || isConnected()) {
-            //console.log("sending", JSON.stringify([event_name, event_data || {}]));
+            //Logger.debug("sending", JSON.stringify([event_name, event_data || {}]));
             sock.send(JSON.stringify([event_name, event_data || {}]));
         }
         else {
-            console.log("Cant send event yet -- sock or guid not ready");
+            Logger.debug("Cant send event yet -- sock or guid not ready");
         }
     };
 
     var guidAssigned = function (event) {
         seamGuid = event.seamGuid;
-        console.log("Self GuidAssigned", seamGuid);
+        Logger.debug("Self GuidAssigned", seamGuid);
         call.assignGuid();
-        //console.log("list of eventHandlers = ", eventHandlers);
+        //Logger.debug("list of eventHandlers = ", eventHandlers);
         invokeIfImplemented(_.values(eventHandlers), "onConnect", event);
     };
 
 
     var close = function () {
-        console.log("client side closing");
+        Logger.debug("client side closing");
         if(joinTimeout) {
             clearTimeout(joinTimeout);
         }
@@ -159,26 +160,26 @@ module.exports = function() {
             return _.isFunction(customOpts) ? customOpts() : customOpts;
         })));
         call.register();
-        console.log("register: on state = " + call.getState() + ", message = " + registrationKey + ", " +
+        Logger.debug("register: on state = " + call.getState() + ", message = " + registrationKey + ", " +
             JSON.stringify(opts));
 
         sendEvent(registrationKey, opts);
-        //console.log("register: setting up guid assigned timeout");
+        //Logger.debug("register: setting up guid assigned timeout");
         var guidAssignedTimeout = setTimeout(function() {
-            //console.log("guid assigned timed out fired");
+            //Logger.debug("guid assigned timed out fired");
             if(call.getState() !== "connected") {
-                console.log("reconnecting as NO guid_assigned during timeout");
-                console.log(call.getState());
+                Logger.debug("reconnecting as NO guid_assigned during timeout");
+                Logger.debug(call.getState());
                 call.reconnect();
             } else {
-                //console.log("guid assigned timeout cleared");
+                //Logger.debug("guid assigned timeout cleared");
                 clearTimeout(guidAssignedTimeout);
             }
         }, 5000);
     };
 
     var _keepAliveFailure = function () {
-        console.log("keepAliveFailure: keep alive failure. Socket is probably dead. Closing socket");
+        Logger.debug("keepAliveFailure: keep alive failure. Socket is probably dead. Closing socket");
         close();
     };
 
@@ -192,24 +193,24 @@ module.exports = function() {
     };
 
     var connect = function(params, reconnecting) {
-        //console.log("connect: Meeting Token = " + meetingAccessToken)
+        //Logger.debug("connect: Meeting Token = " + meetingAccessToken)
         return new Promise(function(resolve, reject) {
             eventHandlers['guidAssigned'] = {onConnect: resolve};
             if (reconnecting) {
-                console.log("Reconnecting");
-                console.log(call.getState());
+                Logger.debug("Reconnecting");
+                Logger.debug(call.getState());
             }
 
             connectParams = params;
-            console.log("Params = ", connectParams);
-            console.log("websocketUrl = ", connectParams.websocketURL);
+            Logger.debug("Params = ", connectParams);
+            Logger.debug("websocketUrl = ", connectParams.websocketURL);
             sock = new SockJS(connectParams.websocketURL, {}, {
                 cookie: true,
                 protocols_whitelist: sockjs_protocols
             });
             joinTimeout = setTimeout(function () {
                 if (!isConnected()) {
-                    console.log("closing due to socket timeout");
+                    Logger.debug("closing due to socket timeout");
                     call.close();
                     call.reconnect();
                 } else {
@@ -227,7 +228,7 @@ module.exports = function() {
                     var msg = JSON.parse(_e.data);
                     if (msg.length == 2 && typeof msg[1] === 'object') {
                         var evt = msg[0];
-                        //console.log("EVT = ", evt);
+                        //Logger.debug("EVT = ", evt);
                         switch (evt) {
                             case 'keepalive':
                                 //_restartKeepAliveTimer();
@@ -238,22 +239,22 @@ module.exports = function() {
 
                             default:
                                 var evt_data = msg[1];
-                                //console.log("0) evt = ", evt);
-                                //console.log("0) evt_data = ", evt_data);
+                                //Logger.debug("0) evt = ", evt);
+                                //Logger.debug("0) evt_data = ", evt_data);
                                 var protocolEvent = evt.match("([^.]*)$")[0];
                                 if (protocolEvent in events()) {
-                                    //console.log("1) protocolEvent = ", protocolEvent, " msg ", msg[0]);
+                                    //Logger.debug("1) protocolEvent = ", protocolEvent, " msg ", msg[0]);
                                     events()[protocolEvent](evt_data);
                                 } else {
                                     var namespaces = _.keys(eventHandlers);
-                                    //console.log("2) namespace = ", namespaces);
-                                    //console.log("2) eventhandlers = ", eventHandlers);
+                                    //Logger.debug("2) namespace = ", namespaces);
+                                    //Logger.debug("2) eventhandlers = ", eventHandlers);
 
                                     var eventNamespace = _.find(namespaces, function (namespace) {
                                         return evt.match("^" + namespace);
                                     });
-                                    //console.log("3) eventNameSpace = ", eventNamespace);
-                                    //console.log("3) eventHandlers[eventNamespace] = ",eventHandlers[eventNamespace]);
+                                    //Logger.debug("3) eventNameSpace = ", eventNamespace);
+                                    //Logger.debug("3) eventHandlers[eventNamespace] = ",eventHandlers[eventNamespace]);
                                     if (eventHandlers[eventNamespace] && eventHandlers[eventNamespace].onMessage) {
                                         eventHandlers[eventNamespace].onMessage(evt, evt_data);
                                     }
@@ -262,11 +263,11 @@ module.exports = function() {
                         }
                     }
                     else {
-                        console.log("JSON Received but not valid event: " + (msg[0] || ""));
+                        Logger.debug("JSON Received but not valid event: " + (msg[0] || ""));
                     }
                 }
                 catch (e) {
-                    console.log("Invalid JSON from SockJSClient - " + _e.data, e);
+                    Logger.debug("Invalid JSON from SockJSClient - " + _e.data, e);
                 }
             };
             sock.onclose = function (e) {
@@ -275,7 +276,7 @@ module.exports = function() {
                 }
             };
             sock.onerror = function (e) {
-                console.log("Error Handler called.", e);
+                Logger.debug("Error Handler called.", e);
                 invokeIfImplemented(_.values(eventHandlers), "onError", e);
             };
         });

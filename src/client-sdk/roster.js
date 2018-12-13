@@ -7,6 +7,7 @@ var	_                      = require('underscore');
 var my                     = require('myclass');
 var ParticipantsCollection = require('./models/participants-collection');
 var Participant            = require('./models/participant');
+var Logger                 = require('Logger');
 
 var Roster = my.Class({
     constructor : function(collection) {
@@ -30,7 +31,7 @@ var Roster = my.Class({
                     }
                     return true;
                 });
-            console.log("newFullself = ", newFullSelf);
+            Logger.debug("newFullself = ", newFullSelf);
             newFullSelf && this.processSelf(newFullSelf, this.selfParticipant);
         }
 
@@ -74,8 +75,8 @@ var Roster = my.Class({
 
     fullUpdate: function(rawParticipantData, options) {
         //Logger.debug("Full update");
-        console.log("fullUpdate rawParticipantData = ", rawParticipantData);
-        console.log("fullUpdate options = ", options.selfParticipant);
+        Logger.debug("fullUpdate rawParticipantData = ", rawParticipantData);
+        Logger.debug("fullUpdate options = ", options.selfParticipant);
         var currentData = this.collection ? this.collection : new ParticipantsCollection();
         var toAdd = [], toModify = [], toDelete = [], affectedIds = [];
         this.extractSelf(rawParticipantData);
@@ -94,10 +95,10 @@ var Roster = my.Class({
             toDelete.push(currentData.get(id));
         });
 
-        //console.log("options = ", options);
-        //console.log("toAdd = ", toAdd);
-        //console.log("toModify = ", toModify);
-        //console.log("toDelete = ", toDelete);
+        //Logger.debug("options = ", options);
+        //Logger.debug("toAdd = ", toAdd);
+        //Logger.debug("toModify = ", toModify);
+        //Logger.debug("toDelete = ", toDelete);
         this.processAdded(toAdd, options);
         this.processModified(toModify, options);
         this.processDeleted(toDelete, options, true);
@@ -178,10 +179,10 @@ processModified: function(peopleToUpdate, options) {
         var newAddSelf;
         this.selfParticipant.id = guidAssignedMsg.E1;
         if (currentData) {
-            console.log("currData = ", currentData);
+            Logger.debug("currData = ", currentData);
             currentData = _(currentData)
                 .filter(function(participant){
-                    console.log("participant = ", participant);
+                    Logger.debug("participant = ", participant);
                     if (!participant) {
                         return false;
                     }
@@ -206,7 +207,7 @@ processModified: function(peopleToUpdate, options) {
 
             var oldObj = oldSelf ? oldSelf: new Participant();
 
-            // console.log("objObj = ", oldObj);
+            // Logger.debug("objObj = ", oldObj);
             var selfAttributes = this.collection.model.translateAttributes(
                 newObj, oldObj);
 

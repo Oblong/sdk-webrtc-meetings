@@ -1,7 +1,9 @@
+var Logger = require('Logger');
+
 // esc = EventServiceClient
 module.exports = function(esc) {
 
-  console.log("(webrtcroster.js) Roster Object...");
+  Logger.debug("(webrtcroster.js) Roster Object...");
 
   var initialize = function() {};
 

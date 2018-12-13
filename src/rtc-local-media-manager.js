@@ -771,7 +771,7 @@ var RTCLocalMediaManager = my.Class({
           }
 
           this.model.set('isSpeaking', (this.vadCount >= vadOnThreshold) ? true : false);
-          //console.log("volume: " + vol + ", vadCount: "+ this.vadCount);
+          //Logger.debug("volume: " + vol + ", vadCount: "+ this.vadCount);
       },
 
   stopVolumeMonitor: function() {

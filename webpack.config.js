@@ -38,6 +38,12 @@ module.exports = {
       }
     ]
   },
+  plugins: [
+    new webpack.EnvironmentPlugin({
+      LOGLEVEL: process.env.NODE_ENV === 'development' ?
+        'log-debug-warn-info-error' : 'warn-error'
+    })
+  ],
   node: {
     fs: 'empty'
   },

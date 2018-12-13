@@ -87,7 +87,11 @@ var Logger = my.Class({
     },
 
     isLevel: function(level) {
-        return new RegExp("level="+level,"i").test(window.location.search);
+        if (typeof process === 'object' && typeof process.env === 'object') {
+            return new RegExp(level).test(process.env.LOGLEVEL);
+        } else {
+            return new RegExp("level="+level,"i").test(window.location.search);
+        }
     },
 
     controlLevel: function() {
@@ -110,11 +114,17 @@ var Logger = my.Class({
                 var currentLogLevel = this.getCurrentLogLevel();
                 if ((LogLevel.ALL.include(currentLogLevel) && !level.exclude(currentLogLevel)) || level.include(currentLogLevel)) {
 
+                    // just use normal console log for debug mode
+                    if (level.func === 'debug') {
+                        return window.console.log.apply(window.console, messages);
+                    }
+
                     if(typeof window.console[level.func] == 'function'){
                         window.console[level.func].apply(window.console, messages);
                     } else {
                         window.console[level.func](_(messages).toArray().join(", "));
                     }
+
                 }
             }
         } catch(e) {

@@ -6,6 +6,7 @@ var providedConfig           = require('../../config');
 var ParticipantsCollection   = require('../models/participants-collection');
 var Roster                   = require('../roster');
 var WSC                      = require('./websocket-client');
+var Logger                   = require('Logger');
 
 module.exports = function() {
     var WebSocketClient = WSC()
@@ -26,7 +27,7 @@ module.exports = function() {
      * @param msg
      */
     var onChatMessage = function(msg) {
-        console.log("MAIN: onChat msg = ", msg);
+        Logger.debug("MAIN: onChat msg = ", msg);
     };
 
     /********
@@ -39,25 +40,25 @@ module.exports = function() {
       *			}
       */
     var onEndpointNotification = function(msg) {
-        if(verbose) console.log("MAIN: onEndpointNotification msg = ", msg);
+        if(verbose) Logger.debug("MAIN: onEndpointNotification msg = ", msg);
         var meetingGuid = msg.meetingGuid;
         if (msg.props && msg.props.f) {
-            console.log("MAIN: @" + msg.timestamp + " " + meetingGuid + " contain these eps: ");
+            Logger.debug("MAIN: @" + msg.timestamp + " " + meetingGuid + " contain these eps: ");
 
             roster = roster ? roster : new Roster(new ParticipantsCollection());
-            //console.log("onFullRoster:2 roster = ", roster);
+            //Logger.debug("onFullRoster:2 roster = ", roster);
             roster.fullUpdate(msg.props, {init: true});
-            console.log("onFullRoster:3 roster = ", roster.collection);
+            Logger.debug("onFullRoster:3 roster = ", roster.collection);
 
             if(verbose) msg.props.f.forEach(function (eps) {
-                console.log("MAIN: @" + msg.timestamp + " " + eps.n + "(" + eps.E1 + ") as a " + eps.e + " (" + eps.t + ")");
+                Logger.debug("MAIN: @" + msg.timestamp + " " + eps.n + "(" + eps.E1 + ") as a " + eps.e + " (" + eps.t + ")");
 
             })
         }
         if (msg.props && msg.props.a) {
             roster.partialUpdate(msg.props);
             if(verbose) msg.props.a.forEach(function (eps) {
-                console.log("MAIN: @" + msg.timestamp + " " + eps.n + "(" + eps.E1 + ") is added to "
+                Logger.debug("MAIN: @" + msg.timestamp + " " + eps.n + "(" + eps.E1 + ") is added to "
                     + meetingGuid + " as a " + eps.e + " (" + eps.t + ")");
             })
         }
@@ -67,21 +68,21 @@ module.exports = function() {
         if (msg.props && msg.props.m) {
             roster.partialUpdate(msg.props);
             if(verbose) {
-        console.log("partialUpdate: roster = ", roster.collection);
-        console.log("partialUpdate: self = ", roster.selfParticipant);
+        Logger.debug("partialUpdate: roster = ", roster.collection);
+        Logger.debug("partialUpdate: self = ", roster.selfParticipant);
 
         msg.props.m.forEach(function (eps) {
-          console.log("MAIN: @" + msg.timestamp + " " + eps.E1 + " is modified");
+          Logger.debug("MAIN: @" + msg.timestamp + " " + eps.E1 + " is modified");
         })
       }
         }
         if (msg.props && msg.props.d) {
             roster.partialUpdate(msg.props);
       if(verbose) {
-        console.log("partialUpdatedelete: roster = ", roster.collection);
-        console.log("partialUpdatedelete: self = ", roster.selfParticipant);
+        Logger.debug("partialUpdatedelete: roster = ", roster.collection);
+        Logger.debug("partialUpdatedelete: self = ", roster.selfParticipant);
         msg.props.d.forEach(function (eps) {
-          console.log("MAIN: @" + msg.timestamp + " " + eps.n + "(" + eps.E1 + ") is deleted from " + meetingGuid);
+          Logger.debug("MAIN: @" + msg.timestamp + " " + eps.n + "(" + eps.E1 + ") is deleted from " + meetingGuid);
         })
             }
         }
@@ -98,8 +99,8 @@ module.exports = function() {
       */
     var onMeetingNotification = function(msg) {
     if(verbose) {
-      console.log("MAIN: onMeetingNotification msg = ", msg);
-      console.log("MAIN: @" + msg.timestamp + " " + msg.props.meetingId + " (" + msg.props.meetingGuid + ") has title = "
+      Logger.debug("MAIN: onMeetingNotification msg = ", msg);
+      Logger.debug("MAIN: @" + msg.timestamp + " " + msg.props.meetingId + " (" + msg.props.meetingGuid + ") has title = "
         + msg.props.title + " is " + msg.props.status);
     }
     };
@@ -116,8 +117,8 @@ module.exports = function() {
       */
     var onDialoutNotification = function(msg) {
     if(verbose) {
-      console.log("MAIN: onDialoutNotification msg = ", msg);
-      console.log("MAIN: @" + msg.timestamp + " dialout statusCode = " + msg.status + " (" + msg.statusCode + ")");
+      Logger.debug("MAIN: onDialoutNotification msg = ", msg);
+      Logger.debug("MAIN: @" + msg.timestamp + " dialout statusCode = " + msg.status + " (" + msg.statusCode + ")");
     }
     };
 
@@ -143,7 +144,7 @@ module.exports = function() {
                 try {
                     msg = JSON.parse(data.body);
                 } catch (e) {
-                    console.log("corrupted json message body", e);
+                    Logger.debug("corrupted json message body", e);
                 }
                 msg.timestamp = data.timestamp;
                 if (msg.event) {
@@ -159,7 +160,7 @@ module.exports = function() {
         }}, 'meeting.notification.msg');
 
         WebSocketClient.connect(params).then(function (joinedEvent) {
-            console.log("MAIN: WEBSOCKET connect sucess ", joinedEvent);
+            Logger.debug("MAIN: WEBSOCKET connect sucess ", joinedEvent);
             /**
              *	For sending the chat messages
               */
@@ -172,36 +173,36 @@ module.exports = function() {
             selfParticipant.ch = joinedEvent.guid ? joinedEvent.guid: "";
             selfParticipant.m  = joinedEvent.meetingGuid ? joinedEvent.meetingGuid: "";
 
-            console.log("local selfParticipant = ", selfParticipant);
+            Logger.debug("local selfParticipant = ", selfParticipant);
 
             roster.assignedSelf(selfParticipant);
-            console.log("roster.selfParticipant = ", roster.selfParticipant);
+            Logger.debug("roster.selfParticipant = ", roster.selfParticipant);
 
             WebSocketClient.registerHandler({onMessage: function(evt, data) {
                 onChatMessage(data);
             }}, 'meeting.chat.msg');
 
             WebSocketClient.onBeforeReconnect = function (reconnectAttempt) {
-                console.log('attempt', reconnectAttempt);
+                Logger.debug('attempt', reconnectAttempt);
             };
 
             WebSocketClient.onError = function (err) {
-                console.log('error', err);
+                Logger.debug('error', err);
             };
 
         }).error(function (err) {
-            console.log('could not able to create websocket connection to BJN cloud', err);
+            Logger.debug('could not able to create websocket connection to BJN cloud', err);
         });
     };
 
     //TODO: cleanup  the connection
     var close = function () {
-        console.log("WebSocketClient.close executed");
+        Logger.debug("WebSocketClient.close executed");
         WebSocketClient.close();
     };
 
     var setLogging = function(turnOn) {
-    console.log("EventServiceClient verbose logging: " + turnOn);
+    Logger.debug("EventServiceClient verbose logging: " + turnOn);
     verbose = turnOn;
     };
 
