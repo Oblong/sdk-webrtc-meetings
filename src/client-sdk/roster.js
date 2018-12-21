@@ -11,7 +11,7 @@ var Logger                 = require('Logger');
 
 var Roster = my.Class({
     constructor : function(collection) {
-        //_.bindAll(this);
+        _.bindAll(this);
         this.collection = collection;
         this.selfParticipant = new Participant();
     },
