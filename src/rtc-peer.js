@@ -526,8 +526,7 @@ var RTCPeer = my.Class({
             this.isClosing = true;
             if (this.pc.signalingState !== "closed")
                 this.pc.close();
-            this.model.set('remoteStream', null);
-            this.model.set('closed', true);
+            this.model.set(PeerModel.getDefaults());
             this.pc = null;
         }
         deferred.resolve();

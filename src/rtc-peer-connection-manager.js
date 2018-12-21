@@ -51,9 +51,8 @@ var RTCPeerConnectionManager = my.Class({
     },
 
     createPeer: function(params) {
-  this.peer = new RTCPeer(params);
-  this.peer.on('iceCandidate', this.onNewIceCandiate);
-
+        this.peer = new RTCPeer(params);
+        this.peer.on('iceCandidate', this.onNewIceCandiate);
         this.peer.model.on('change:iceGatheringState', this.onIceGatheringStateChanged);
         this.peer.model.on('change:iceConnectionState', this.onIceConnectionStateChange);
         this.peer.model.on('change:signalingState', this.onSignalingStateChange);

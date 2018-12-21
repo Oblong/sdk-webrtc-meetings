@@ -421,8 +421,7 @@ var RTCScreenSharingManager = my.Class({
         this.doScreenSharing = false;
         var tokenStatus = this.model.get('tokenStatus');
         this.releaseToken();
-        this.model.set('localContentStream', null);
-        this.model.set('chromeMediaSourceId', null);
+        this.model.set(RTCScreenSharingModel.defaults);
     },
 
     close: function() {

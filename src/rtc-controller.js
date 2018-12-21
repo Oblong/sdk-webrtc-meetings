@@ -523,6 +523,9 @@ var RTCController = my.Class({
         this.peerConnectionManager.close();
         RTCScreenSharingManager.close();
         RTCTransactionManager.reset();
+        RTCStateManager.reset();
+        this.model.set(RTCCallStateModel.defaults);
+        this.internalModel.set(RTCPrivateModel.defaults);
         deferred.resolve();
         return deferred.promise;
     },

@@ -26,7 +26,7 @@ var RTCManager = my.Class({
             Logger.error("Browser not supported !!");
             return;
         }
-        this.EventServiceClient = EVSC();
+        this.EventServiceClient = new EVSC();
         _.bindAll(this);
         _.extend(this, Backbone.Events);
         this.initialize(params);

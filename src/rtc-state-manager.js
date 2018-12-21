@@ -198,7 +198,7 @@ var RTCStateManager = my.Class({
 
     reset: function() {
         this.stateMachine.reset();
-        this.model.setCurrentState(this.stateMachine.getState());
+        this.model.set(RTCCallStateModel.defaults);
     }
 });
 

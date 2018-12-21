@@ -163,7 +163,6 @@ var RTCTransactionManager = my.Class({
             clearInterval(timer);
         });
         this.model.resetTransaction();
-        this.model.set('connectResponseReceived', false);
     }
 });
 

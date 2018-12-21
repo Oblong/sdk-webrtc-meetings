@@ -63,6 +63,7 @@ var RTCCallStats = my.Class({
 
     close: function() {
         this.stopPollingStats();
+        this.model.set(RTCCallStatsModel.defaults);
     }
 
 });
