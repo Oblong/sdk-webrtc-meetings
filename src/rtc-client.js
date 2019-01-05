@@ -220,6 +220,13 @@ module.exports = function (RTCManager) {
   // End the meeting
   var leaveMeeting = function(event) {
     RTCManager.endMeeting();
+    config = {
+      muteParams: {
+        localAudio: false,
+        localVideo: false
+      }
+    };
+    MediaStarted = false;
     Logger.debug("Leaving meeting");
   };
 
