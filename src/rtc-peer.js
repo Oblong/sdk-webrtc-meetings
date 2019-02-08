@@ -85,9 +85,18 @@ var RTCPeer = my.Class({
             this.addStream(options.fakeStream);
         }
 
+        // statsPollInterval was originally set to:
+        //
+        //   this.isFirefox ? 1000 : this.model.get('statsPollInterval')
+        //
+        // But this.model.get('statsPollInterval') is not defined returning a
+        // value of undefined (i.e. 0) causing an excessive amount of
+        // intervals being called and impacting CPU performance.
+        //
+        // To avoid the issue we now force the value to 1 second.
         this.callStats = new RTCCallStats({
               peerConnection: this.pc,
-              statsPollInterval: this.isFirefox ? 1000 : this.model.get('statsPollInterval')
+              statsPollInterval: 1000
         });
         this.callStatsModel = this.callStats.model;
         this.callStats.on('rtcstats', this.checkFFMediaConnectivity);
