@@ -2,6 +2,8 @@ const webpack = require('webpack');
 const path = require('path');
 
 const thirdparty = path.resolve(__dirname, 'src', 'thirdparty');
+const PRODUCTION = process.env.NODE_ENV === 'production' ||
+  process.env.NODE_ENV === undefined;
 
 module.exports = {
   mode: process.env.NODE_ENV || 'production',
@@ -49,6 +51,6 @@ module.exports = {
   },
   optimization: {
 		// We no not want to minimize our code.
-		minimize: process.env.NODE_ENV === 'production'
+		minimize: PRODUCTION
 	},
 }

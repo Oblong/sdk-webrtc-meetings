@@ -1,4 +1,5 @@
 var Logger = require('Logger');
+var Q      = require('q');
 
 module.exports = function (RTCManager) {
 
@@ -55,6 +56,8 @@ module.exports = function (RTCManager) {
         localVideoEl  : <dom element for local video>,
         remoteVideoEl : <dom element for remote video>,
         contentVideoEl: <dom element for content share video>
+        muteAudio     : boolean <initialize with audio muted>
+        muteVideo     : boolean <initialize with video muted>
         bandWidth     : <100..4096Kbps netwk b/w>,
         devices       : { A/V devices },
         evtVideoUnmute  : callback(),
@@ -64,11 +67,20 @@ module.exports = function (RTCManager) {
         evtContentShareStateChange : callback()  // ver 1.1.x
   */
   var initialize = function(options) {
+    var deferred = Q.defer();
     Logger.debug("bjnrtcsdk initializing");
     localDevices = options.devices;
     localVideoEl = options.localVideoEl;
     remoteVideoEl = options.remoteVideoEl;
     contentVideoEl = options.contentVideoEl;
+
+    if (options.muteVideo === true) {
+      config.muteParams.localVideo = options.muteVideo
+    }
+
+    if (options.muteAudio === true) {
+      config.muteParams.localAudio = options.muteAudio;
+    }
 
     cbVideoMute = options.evtVideoUnmute;
     cbRemoteConnectionStateChange = options.evtRemoteConnectionStateChange;
@@ -82,8 +94,6 @@ module.exports = function (RTCManager) {
 
     RTCManager.setBandwidth(options.bandWidth);
     MediaStarted = false;
-    startLocalStream();
-
     // get hooks to RTCManager callbacks
     RTCManager.localVideoStreamChange		= updateSelfView;
     RTCManager.localAudioStreamChange		= updateAudioPath;
@@ -92,6 +102,16 @@ module.exports = function (RTCManager) {
     RTCManager.remoteStreamChange           = onRemoteStreamUpdated;
     RTCManager.error                        = onRTCError;
     RTCManager.contentStreamChange			= onContentStreamUpdated;
+
+    startLocalStream().then(function() {
+      if (config.muteParams.localVideo || config.muteParams.localAudio) {
+        RTCManager.muteStreams(config.muteParams);
+      }
+      deferred.resolve();
+    }).catch(function(err) {
+      deferred.reject(err);
+    })
+    return deferred.promise;
   };
 
   //Get the local A/V stream, this stream will be used to for the webrtc connection
@@ -99,7 +119,7 @@ module.exports = function (RTCManager) {
   // stream[0] - local audio stream
   // stream[1] - local video stream
   var startLocalStream = function() {
-
+    var deferred = Q.defer();
     var streamType = 'local_stream';
     if(MediaStarted)
       streamType = 'preview_stream';
@@ -125,9 +145,12 @@ module.exports = function (RTCManager) {
             MediaStarted = true;
 
       if(cbVideoMute) cbVideoMute();
+      deferred.resolve();
     }, function(err){
       Logger.debug("getLocalMedia error:\n" + JSON.stringify(err,null,2));
+      deferred.reject(err);
     });
+    return deferred.promise
   };
 
   //Callback for local video stream change, it can be used to render self view when the stream is available
