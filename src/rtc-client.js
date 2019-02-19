@@ -1,6 +1,8 @@
 var Logger = require('Logger');
 var Q      = require('q');
 
+function stopTrack(t) { t.stop(); }
+
 module.exports = function (RTCManager) {
 
   Logger.debug("(webrtcclientsdk.js) client Ref Design loading...");
@@ -153,22 +155,62 @@ module.exports = function (RTCManager) {
     return deferred.promise
   };
 
+  var closeLocalVideoStream = function() {
+    if (localVideoStream) {
+      localVideoStream.getTracks().forEach(stopTrack);
+      localVideoStream = undefined;
+    }
+  }
+
+  var closeLocalAudioStream = function() {
+    if (localAudioStream) {
+      localAudioStream.getTracks().forEach(stopTrack);
+      localAudioStream = undefined;
+    }
+  }
+
+  var closeRemoteStream = function() {
+    if (remoteStream) {
+      remoteStream.getTracks().forEach(stopTrack);
+      remoteStream = undefined;
+    }
+  }
+
+  var closeContentStream = function() {
+    if (contentStream) {
+      contentStream.getTracks().forEach(stopTrack);
+      contentStream = undefined;
+    }
+  }
+
+  var closeAllStreams = function() {
+    closeLocalAudioStream();
+    closeLocalVideoStream();
+    closeRemoteStream();
+    closeContentStream();
+  }
+
   //Callback for local video stream change, it can be used to render self view when the stream is available
   var updateSelfView = function (localStream) {
-    if(localStream) {
+    if (!localStream) {
+      closeLocalVideoStream();
+    } else {
+      localVideoStream = localStream;
       RTCManager.renderSelfView({
-                stream: localStream,
-                el: localVideoEl
-            });
-    if(cbVideoMute)
-      cbVideoMute(false);
-      } else
-    Logger.debug("updateSelfView no stream!!!");
+        stream: localStream,
+        el: localVideoEl
+      });
+      if(cbVideoMute) { cbVideoMute(false); }
+    }
+
   };
 
   // Callback when audio stream changes.  update GUI if stream is defined
   var updateAudioPath = function (localStream) {
-    if(localStream) {
+    if(!localStream) {
+      closeLocalAudioStream();
+    } else {
+      localAudioStream = localStream;
       Logger.debug("Audio Path Change");
     }
   };
@@ -242,6 +284,7 @@ module.exports = function (RTCManager) {
 
   // End the meeting
   var leaveMeeting = function(event) {
+    closeAllStreams();
     RTCManager.endMeeting();
     config = {
       muteParams: {
@@ -265,8 +308,10 @@ module.exports = function (RTCManager) {
   };
 
   var onRemoteStreamUpdated = function(stream) {
-    remoteStream = stream;
-    if (stream) {
+    if (!stream) {
+      closeRemoteStream();
+    } else {
+      remoteStream = stream;
       Logger.debug('Remote stream updated');
       RTCManager.renderStream({
           stream: remoteStream,
@@ -276,8 +321,10 @@ module.exports = function (RTCManager) {
   };
 
   var onContentStreamUpdated = function(stream){
-    contentStream = stream;
-    if (stream) {
+    if (!stream) {
+      closeContentStream();
+    } else {
+      contentStream = stream;
       Logger.debug('Content stream updated');
       RTCManager.renderStream({
         stream: stream,

@@ -644,11 +644,11 @@ var RTCLocalMediaManager = my.Class({
                   else
                       track.stop();
               });
-              this.model.set('localVideoStream', stream.clone());
               Logger.debug('RTCLocalMediaManager: Local Video muted');
           } else {
               Logger.warn('Local Video stream is null, cannot mute/unmute local video');
           }
+          this.model.set('localVideoStream', null);
           this.model.set('localVideoMuted', true);
           deferred.resolve();
       },
