@@ -14,6 +14,7 @@ var RTCStateManager    = require('./rtc-state-manager');
 var SDPUtils           = require('sdpUtils');
 var SDPInterop         = require('./sdp-interop/index');
 var BrowserDetector    = require('browserDetector');
+var firefoxSdpConstants = require('./rtc-firefox-sdp-contants');
 
 var RTCPeer = my.Class({
 
@@ -547,9 +548,9 @@ var RTCPeer = my.Class({
 
         if (this.isFirefox) {
             if (message.sdpMid === 'audio')
-                message.sdpMid = 'sdparta_0';
+                message.sdpMid = firefoxSdpConstants.FIREFOX_SDP_OBJ.SDP_MID_0;
             else {
-                message.sdpMid = 'sdparta_1';
+                message.sdpMid = firefoxSdpConstants.FIREFOX_SDP_OBJ.SDP_MID_1;
                 message.sdpMLineIndex = 1;
             }
         }

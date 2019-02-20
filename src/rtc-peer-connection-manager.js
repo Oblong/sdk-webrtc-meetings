@@ -20,6 +20,7 @@ var RTCTransactionManager   = require('./rtc-transaction-manager');
 var RTCScreenSharingManager = require('./rtc-screensharing-manager');
 var RTCErrors               = require('./rtc-error');
 var BrowserDetector         = require('browserDetector');
+var firefoxSdpConstants     = require('./rtc-firefox-sdp-contants');
 
 var RTCPeerConnectionManager = my.Class({
     config: {
@@ -111,9 +112,9 @@ var RTCPeerConnectionManager = my.Class({
         if (iceCandidate) {
 
             if (BrowserDetector.browser === 'firefox') {
-                if (iceCandidate.sdpMid === 'sdparta_0')
+                if (iceCandidate.sdpMid === firefoxSdpConstants.FIREFOX_SDP_OBJ.SDP_MID_0)
                       iceCandidate.sdpMid = 'audio';
-                  else if (iceCandidate.sdpMid === 'sdparta_1' || iceCandidate.sdpMid === 'sdparta_2') {
+                  else if (iceCandidate.sdpMid === firefoxSdpConstants.FIREFOX_SDP_OBJ.SDP_MID_1 || iceCandidate.sdpMid === firefoxSdpConstants.FIREFOX_SDP_OBJ.SDP_MID_2) {
                       iceCandidate.sdpMid = 'video';
                       iceCandidate.sdpMLineIndex = 1;
                 }

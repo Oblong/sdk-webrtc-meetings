@@ -19,6 +19,7 @@
 
  var transform = require('./transform');
  var arrayEquals = require('./array-equals');
+ var firefoxSdpConstants = require('../rtc-firefox-sdp-contants');
 
  function Interop() {
 
@@ -713,13 +714,13 @@
      session.media.forEach(function(unifiedLine) {
 
          if(index == 0){
-             unifiedLine.mid = 'sdparta_0';
+             unifiedLine.mid = firefoxSdpConstants.FIREFOX_SDP_OBJ.SDP_MID_0;
          }
          else if(index == 1){
-             unifiedLine.mid = 'sdparta_1';
+             unifiedLine.mid = firefoxSdpConstants.FIREFOX_SDP_OBJ.SDP_MID_1;
          }
          else if(index == 2){
-             unifiedLine.mid = 'sdparta_2';
+             unifiedLine.mid = firefoxSdpConstants.FIREFOX_SDP_OBJ.SDP_MID_2;
          }
          mids.push(unifiedLine.mid);
          index++;
