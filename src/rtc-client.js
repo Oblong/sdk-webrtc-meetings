@@ -60,6 +60,9 @@ module.exports = function (RTCManager) {
         contentVideoEl: <dom element for content share video>
         muteAudio     : boolean <initialize with audio muted>
         muteVideo     : boolean <initialize with video muted>
+        audioInputIndex  : string <initial audio input index>
+        audioOutputIndex : string <initial audio output index>
+        videoInputIndex  : string <initial video input index>
         bandWidth     : <100..4096Kbps netwk b/w>,
         devices       : { A/V devices },
         evtVideoUnmute  : callback(),
@@ -82,6 +85,18 @@ module.exports = function (RTCManager) {
 
     if (options.muteAudio === true) {
       config.muteParams.localAudio = options.muteAudio;
+    }
+
+    if (options.audioInputIndex) {
+      changeAudioInput(options.audioInputIndex);
+    }
+
+    if (options.audioOutputIndex) {
+      changeAudioOutput(options.audioOutputIndex);
+    }
+
+    if (options.videoInputIndex) {
+      changeVideoInput(options.videoInputIndex);
     }
 
     cbVideoMute = options.evtVideoUnmute;
@@ -223,6 +238,11 @@ module.exports = function (RTCManager) {
       mediaConstraints.audio.optional.push( { sourceId: dev } );
     */
     mediaConstraints.audio.deviceId = dev;
+
+    if (!MediaStarted) {
+      return;
+    }
+
     RTCManager.stopLocalStreams();
     startLocalStream();
   };
@@ -234,6 +254,11 @@ module.exports = function (RTCManager) {
       mediaConstraints.video.optional.push( { sourceId: dev } );
     */
     mediaConstraints.video.deviceId = dev;
+
+    if (!MediaStarted) {
+      return;
+    }
+
     RTCManager.stopLocalStreams();
     startLocalStream();
   };
@@ -245,6 +270,7 @@ module.exports = function (RTCManager) {
       mediaConstraints.audio.optional.push( { sourceId: dev } );
     */
     // 5/30/2017 - bugfix pass mediaElements value as an array rather than discrete object
+    // No need to check MediaStarted as it only depends on mediaElements.
     RTCManager.setSpeaker({ speakerId : dev, mediaElements : [remoteVideoEl] });
   };
 
